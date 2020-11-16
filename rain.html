@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>练习</title>
+    <style>
+        canvas {
+            background-color: #000;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="canvas"></canvas>
+</body>
+
+</html>
+<script>
+    // 1.0 
+    var canvas = document.getElementById("canvas");
+    // 2.0
+    var w;
+    var h;
+    // 3.0 
+    var ctx = canvas.getContext("2d");
+    var init = function () {
+        w = window.innerWidth;
+        h = window.innerHeight;
+        canvas.width = w;
+        canvas.height = h;
+    }
+    // 4.0 
+    init();
+    // 5.0 
+    window.onresize = init;
+    function Rain() {}
+    var random = function (min, max) {
+        return Math.floor(Math.random() * (max - min) + min);
+    }
+    // 6.0 
+    var aRain = [];
+    // 7.0 
+    Rain.prototype.init = function () {
+        this.x = random(0, w);
+        this.y = 0;
+        this.vY = random(4,5);
+        this.h = random(0.8 *h,0.9*h);
+        this.r = 1;
+        this.vr = 1;
+    }
+    // .0 
+    Rain.prototype.draw = function () {
+       if(this.y < this.h){
+            ctx.beginPath();
+            ctx.fillStyle = "#fff";
+            ctx.fillRect(this.x, this.y++, 4, 10);
+       }else {
+           ctx.beginPath();
+           ctx.strokeStyle="#fff"
+           ctx.arc(
+                this.x,
+                this.y,
+                this.r,
+                0,
+                2 * Math.PI,
+                false
+           )
+           ctx.stroke();
+       }
+    }
+    // .0 
+    Rain.prototype.move = function(){
+        if(this.y < this.h){
+            this.y += this.vY;
+        }else {
+            if(this.r < 45 ){
+                this.r +=this.vr;
+            }else {
+                this.init();
+            }
+        }
+        this.draw();
+
+    }
+   
+
+    // 8.0
+    function createRain(count) {
+        for (var i = 0; i < count; i++) {
+            setTimeout(function () {
+                var rain = new Rain();
+                rain.init();
+                rain.draw();
+                aRain.push(rain);
+            }, 200 * i)
+        }
+    }
+    // .0 
+    createRain(50)
+    // .0 
+    setInterval(() => {
+        ctx.fillStyle="rgba(0,0,0,0.05)";
+        ctx.fillRect(0,0,w,h);
+        for(var index = 0 ; index< aRain.length;index++){
+            aRain[index].move();
+        }
+    }, 1000/60);
+</script>

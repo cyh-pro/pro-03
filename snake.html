@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+	<title>贪吃蛇</title>
+	<style>
+		* {
+			padding: 0;
+			margin: 0;
+
+		}
+		body {
+			overflow: hidden;
+		}
+	</style>
+</head>
+<body>
+	
+	<canvas id="canvasId"></canvas>
+
+	<script>
+		var canvas =  document.getElementById('canvasId');
+		var ctx = canvas.getContext('2d');
+		canvas.width = window.innerWidth;
+		canvas.height = window.innerHeight;
+
+		var winWidth = window.innerWidth;
+		var winHeight = window.innerHeight;
+
+		/*
+		1.0 蛇数组，方向，食物位置
+		*/
+		var snake_body = [];
+		var direction = 'right'; //
+		var food_position = [];
+		init_data()
+		//初始化..
+		function init_data(){
+				snake_body = [
+					{x:40,y:40,color:"blue"},
+					{x:60,y:40,color:"blue"},
+					{x:80,y:40,color:"red"},
+				]
+
+				direction ='right';
+
+				food_position={x:120,y:160}
+		}
+		//移动
+		var timer = setInterval(function(){
+			ctx.clearRect(0,0,winWidth,winHeight);
+
+			init();//初始化
+			draw_snake();//绘制蛇
+			snake_move();//蛇移动
+
+		},120)
+
+		/*
+
+
+			2.0 监听键盘事件
+
+		*/
+		// 向左边 left 37
+		// 向右边 right 39
+		// 向下边 bottom 40
+		// 向上边 top 38
+
+		document.addEventListener('keydown',function(evt){
+			var event = evt || window.event;
+
+			if(event.keyCode == 37 && direction!='right'){
+				direction='left'
+			}
+			if(event.keyCode == 39 && direction!='left'){
+				direction='right'
+			}
+			if(event.keyCode == 40 && direction!='top'){
+				direction='bottom'
+			}
+			if(event.keyCode == 38 && direction!='bottom'){
+				direction='top'
+			}
+			console.log(direction)
+
+		})
+
+		/*
+
+		3.0 绘制活动地图
+
+		*/
+		var space = 20; // 每一个大小
+		var colCount = canvas.width / space ; //多少行
+		var rowCount= canvas.height / space; //多少列
+		
+		function init(){
+			ctx.strokeStyle = "#333";
+			for(var i = 0 ; i <= colCount; i++){
+				ctx.moveTo(i*space,0)
+				ctx.lineTo(i*space,canvas.height);
+			}
+
+			for(var i = 0 ; i <= rowCount; i++){
+				
+				ctx.moveTo(0,i*space)
+				ctx.lineTo(canvas.width,space*i);
+			}
+			ctx.stroke();
+			ctx.fillStyle="orange";
+			ctx.fillRect(food_position.x,food_position.y,space,space);
+		}
+		 // init();//调用初始化函数
+		 //绘制蛇
+		 function draw_snake(){
+		 	var new_snake = [];
+		 	for(var i =0; i < snake_body.length; i++){
+		 		ctx.fillStyle = snake_body[i].color;
+		 		ctx.fillRect(snake_body[i].x,snake_body[i].y,space,space);
+
+		 		new_snake.push({
+		 			x:snake_body[i].x,
+		 			y:snake_body[i].y
+		 		})
+		 	}
+
+		 	eat_food();
+		 	game_over(new_snake);
+		 } 
+		 //设置蛇移动函数
+		 function snake_move(){
+		 	var x = 0 ;
+		 	var y = 0 ;
+
+		 	if(direction == 'right'){
+		 		x=space;
+		 	}
+		 	if(direction == 'left'){
+		 		x=-space;
+		 	}
+		 	if(direction == 'bottom'){
+		 		y=space;
+		 	}
+		 	if(direction == 'top'){
+		 		y=-space;
+		 	}
+
+		 	//每次执行执行 清除画布了之后，蛇的坐标需要更新
+		 	for(var i = 0 ; i < snake_body.length-1;i++){
+		 		snake_body[i].x = snake_body[i+1].x;
+		 		snake_body[i].y = snake_body[i+1].y;
+		 	}
+
+		 	//移动一个坐标
+		 	snake_body[snake_body.length-1].x +=x;
+		 	snake_body[snake_body.length-1].y +=y;
+
+		 }
+
+
+		 //随机食物坐标
+		 function random_food(){
+		 	food_position = {
+		 		x:Math.floor(Math.random()*(colCount-0)+0) * space ,// 例如  ： 行数
+		 		y:Math.floor(Math.random()*(rowCount-0)+0) * space 
+		 	}
+		 }
+
+		 //吃到食物 判断碰撞
+		 function eat_food(){
+		 	if(snake_body[snake_body.length-1].x == food_position.x && snake_body[snake_body.length-1].y==food_position.y){
+
+		 		random_food();
+		 		add_snake_body();
+		 	}
+		 }
+		//往蛇数组，添加一个方块
+		function add_snake_body(){
+			var new_snake_body = {
+				x:snake_body[0].x-space,
+				x:snake_body[0].y-space,
+				color:"blue"
+			}
+
+			snake_body.unshift(new_snake_body);
+		}
+		// 设置分数、或提示游戏结束
+		function game_over(new_snake){
+			var last_body = snake_body[snake_body.length-1];
+
+			if(last_body.x == -space || last_body.x==canvas.width ||last_body.y == -space || last_body.y==canvas.height ){
+
+				console.log('亲，撞到墙了。')
+
+				init_snake();//重新开始游戏
+			}
+
+
+			for(var i = 0 ; i <new_snake.length;i++ ){
+				for(var j = i+1 ; j <new_snake.length;j++ ){
+
+					if(new_snake[i].x == new_snake[j].x && new_snake[i].y == new_snake[j].y){
+
+						console.log('亲，撞到自己了。')
+
+						init_snake();//重新开始游戏
+					}
+				}
+			}
+		}
+	</script>
+</body>
+</html>
